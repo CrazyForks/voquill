@@ -50,7 +50,7 @@ extern "C" {
 pub fn get_text_field_info() -> TextFieldInfo {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_text_field_info_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_text_field_info panicked, returning empty");
+            log::error!("get_text_field_info panicked, returning empty");
             empty_text_field_info()
         })
 }
@@ -59,7 +59,7 @@ pub fn get_text_field_info() -> TextFieldInfo {
 pub fn get_screen_context() -> ScreenContextInfo {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_screen_context_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_screen_context panicked, returning empty");
+            log::error!("get_screen_context panicked, returning empty");
             ScreenContextInfo { screen_context: None }
         })
 }
@@ -766,7 +766,7 @@ unsafe fn insert_text_at_cursor_impl(text: &str) -> Result<(), String> {
 pub fn get_selected_text() -> Option<String> {
     catch_unwind(AssertUnwindSafe(|| unsafe { get_selected_text_impl() }))
         .unwrap_or_else(|_| {
-            eprintln!("[macos::accessibility] get_selected_text panicked, returning None");
+            log::error!("get_selected_text panicked, returning None");
             None
         })
 }
