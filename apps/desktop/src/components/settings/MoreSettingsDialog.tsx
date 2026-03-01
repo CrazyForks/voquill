@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import type { DictationPillVisibility, StylingMode } from "@repo/types";
 import { appLogDir } from "@tauri-apps/api/path";
-import { openPath } from "@tauri-apps/plugin-opener";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { ChangeEvent, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import {
@@ -102,7 +102,7 @@ export const MoreSettingsDialog = () => {
 
   const handleOpenLogsFolder = async () => {
     const dir = await appLogDir();
-    await openPath(dir);
+    await revealItemInDir(dir);
   };
 
   return (

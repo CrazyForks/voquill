@@ -1,6 +1,6 @@
 use sqlx::sqlite::SqlitePoolOptions;
 use tauri::{Manager, WindowEvent};
-use tauri_plugin_log::{Target, TargetKind, RotationStrategy, TimezoneStrategy};
+use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
 
 const AUTOSTART_HIDDEN_ARG: &str = "--voquill-autostart-hidden";
 
@@ -8,19 +8,18 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
     let updater_builder = tauri_plugin_updater::Builder::new();
 
     tauri::Builder::default()
-        .plugin(
+        .plugin({
+            let file_name = chrono::Local::now().format("voquill_%Y-%m-%d_%H%M%S").to_string();
             tauri_plugin_log::Builder::new()
                 .targets([
-                    Target::new(TargetKind::LogDir { file_name: None }),
+                    Target::new(TargetKind::LogDir { file_name: Some(file_name.into()) }),
                     Target::new(TargetKind::Stdout),
                     Target::new(TargetKind::Webview),
                 ])
-                .max_file_size(5_000_000)
-                .rotation_strategy(RotationStrategy::KeepAll)
                 .level(log::LevelFilter::Debug)
                 .timezone_strategy(TimezoneStrategy::UseLocal)
-                .build(),
-        )
+                .build()
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is launched, bring the existing window to the foreground
             if let Some(window) = app.get_webview_window("main") {
