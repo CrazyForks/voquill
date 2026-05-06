@@ -1,6 +1,6 @@
 import { FiremixTimestamp } from "@firemix/core";
 import z from "zod";
-import { Replace } from "./common.types";
+import { Nullable, Replace } from "./common.types";
 
 export const TENANT_ROLES = ["owner", "admin", "member"] as const;
 export type TenantRole = (typeof TENANT_ROLES)[number];
@@ -14,6 +14,10 @@ export type DatabaseTenant = {
   createdBy: string;
   /** Total seats purchased for this tenant. Source of truth: Stripe webhook. */
   seatCount: number;
+  /** Stripe customer ID — set the first time the tenant opens checkout. */
+  stripeCustomerId?: Nullable<string>;
+  /** Most recent active subscription ID, set by the webhook. */
+  stripeSubscriptionId?: Nullable<string>;
 };
 
 export type Tenant = Replace<DatabaseTenant, FiremixTimestamp, string>;
@@ -26,5 +30,7 @@ export const TenantZod = z
     name: z.string(),
     createdBy: z.string(),
     seatCount: z.number().int().nonnegative(),
+    stripeCustomerId: z.string().nullable().optional(),
+    stripeSubscriptionId: z.string().nullable().optional(),
   })
   .strict() satisfies z.ZodType<Tenant>;
