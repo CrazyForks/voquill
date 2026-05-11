@@ -1,4 +1,3 @@
 import { isMacOS } from "./env.utils";
 
-export const isAppleSpeechTranscriptionSupported = (): boolean =>
-  isMacOS();
+export const isAppleSpeechTranscriptionSupported = (): boolean => isMacOS();

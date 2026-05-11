@@ -80,31 +80,29 @@ pub fn build() -> tauri::Builder<tauri::Wry> {
         )
         .on_window_event(|window, event| {
             match event {
-                WindowEvent::CloseRequested { api, .. } => {
+                WindowEvent::CloseRequested { api, .. } if window.label() == "main" => {
                     api.prevent_close();
-                    if window.label() == "main" {
-                        let _ = window
-                            .app_handle()
-                            .save_window_state(StateFlags::SIZE | StateFlags::POSITION);
-                        let _ = window.hide();
-                        // On Windows, force the WebView to stay active after hiding the window
-                        // so that background JS (global hotkey detection via keys_held events)
-                        // continues running while the app is minimized to the system tray.
-                        #[cfg(target_os = "windows")]
-                        {
-                            crate::platform::window::keep_webview_active(
-                                window.app_handle(),
-                                "main",
-                            );
-                            crate::platform::window::set_webview_keepalive(true);
-                        }
-                        #[cfg(target_os = "macos")]
-                        {
-                            if let Err(err) = crate::platform::macos::dock::hide_dock_icon() {
-                                log::error!("Failed to hide dock icon: {err}");
-                            }
+                    let _ = window
+                        .app_handle()
+                        .save_window_state(StateFlags::SIZE | StateFlags::POSITION);
+                    let _ = window.hide();
+                    // On Windows, force the WebView to stay active after hiding the window
+                    // so that background JS (global hotkey detection via keys_held events)
+                    // continues running while the app is minimized to the system tray.
+                    #[cfg(target_os = "windows")]
+                    {
+                        crate::platform::window::keep_webview_active(window.app_handle(), "main");
+                        crate::platform::window::set_webview_keepalive(true);
+                    }
+                    #[cfg(target_os = "macos")]
+                    {
+                        if let Err(err) = crate::platform::macos::dock::hide_dock_icon() {
+                            log::error!("Failed to hide dock icon: {err}");
                         }
                     }
+                }
+                WindowEvent::CloseRequested { api, .. } => {
+                    api.prevent_close();
                 }
                 // On Windows, WebView2 automatically freezes JS execution when the
                 // hosting window is occluded (fully covered by another window) or

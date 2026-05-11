@@ -197,7 +197,9 @@ unsafe fn recognize_wav(
             let (lock, cvar) = &*callback_state;
             if let Ok(mut state) = lock.lock() {
                 if let Some(text) = next_text {
-                    if is_better_transcript(&text, &state.best_text) {
+                    if is_final {
+                        state.best_text = select_final_transcript(&text, &state.best_text);
+                    } else if is_better_partial_transcript(&text, &state.best_text) {
                         state.best_text = text;
                     }
                 }
@@ -406,7 +408,27 @@ fn wait_for_recognition(
         .unwrap_or_else(|| Err("Apple Speech recognition ended without a result.".to_string())))
 }
 
-fn is_better_transcript(candidate: &str, current: &str) -> bool {
+fn select_final_transcript(final_text: &str, best_partial: &str) -> String {
+    let final_text = final_text.trim();
+    let best_partial = best_partial.trim();
+
+    if final_text.is_empty() || is_suspiciously_short_final(final_text, best_partial) {
+        return best_partial.to_string();
+    }
+
+    final_text.to_string()
+}
+
+fn is_suspiciously_short_final(final_text: &str, best_partial: &str) -> bool {
+    let final_words = final_text.split_whitespace().count();
+    let partial_words = best_partial.split_whitespace().count();
+
+    partial_words >= 6
+        && final_words + 2 < partial_words
+        && final_text.chars().count() * 2 < best_partial.chars().count()
+}
+
+fn is_better_partial_transcript(candidate: &str, current: &str) -> bool {
     let candidate = candidate.trim();
     if candidate.is_empty() {
         return false;
